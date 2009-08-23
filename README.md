@@ -45,13 +45,46 @@ Example
 Track basic stats (impressions, clicks) tracking for your items
 
     class Item < ActiveRecord::Base
-      simple_stat :target_prefix => 'stat_', :source_prefix => 'track_'
+      simple_stat
     end
 
     Item.first.track_impression
     Item.first.impressions_count
     => 1
-    
+
+
+Options
+---
+
+#### setup options
+
+- :as (:target or :source, default :target)
+  config standard tracking or two way tracking
+- :supported_actions (default : impression/click)
+  list of supported actions for stats tracking and reporting, it also supports custom actions
+- :query_prefix (default : '')
+  prefix for reporting methods (item.clicks, item.clicks_count), it defaults to empty string
+  for simplicity, you can add a prefix in case there is method name conflict
+- :tracking\_prefix (default : 'track_')
+  prefix for tracking methods (item.track_click)
+
+#### Optional tracking attributes
+
+- remote_ip
+- user_agent
+- referer
+- request_uri
+- meta
+
+Example
+  
+    video.track_view(:user_agent => 'Firefox', :remote_ip => request.ip, :referer => request.referer :meta => {
+      :video_hash => '63283ad3d6adf2b616f756de22082000',
+      :duration => '3:23',
+      :env => request.env          # or event the entire request header
+    })
+
+
 Advanced Example
 ---
 
@@ -59,41 +92,44 @@ How about two-way tracking between Users and Items, also with custom action trac
 
 Item is now the tracking target
 
-    class Item < ActiveRecord::Base
-      simple_stat :as => :target, :actions => %w(view click pause play exit)
+    class Video < ActiveRecord::Base
+      simple_stat :as => :target, :supported_actions => %w(view play pause exit)
     end
 
 User class is now the tracking source
 
     class User < ActiveRecord::Base
-      simple_stat :as => :source, :actions => %w(view click pause play exit)
+      simple_stat :as => :source, :supported_actions => %w(view play pause exit)
     end
 
 Usage
     
-    item = Item.first
+    video = Video.first
     user = User.first
     
-    item.track_impression
-    item.track_impression_by(user)
+    video.track_view
+    video.track_view_by(user)
     
-    user.track_impression_on(item)
-    item.track_click(:browser => 'Firefox', :remote_ip => request.ip)
+    user.track_view_on(video)
+    
+    # Customize analyic tracking information
+    video.track_view(:browser => 'Firefox', :remote_ip => request.ip)
 
     # Pull all impressions objects (default: today)
-    item.impressions
+    video.views
     
     # Pull all impressions objects of this week
-    item.impressions(7.days.ago ... Time.now)
+    video.views(7.days.ago ... Time.now)
     
     # Impression count (default: today)
-    item.impressions_count
+    item.views_count
     
     Item.first.clicks
 
-    
-    
-    
+API
+--
+javascript api is coming soon
+
     <script>
         var api_key = "something"
         var stat_for = "Item"

@@ -28,8 +28,9 @@ end
 
 def create_record(hash = {})
   SimpleStats::Record.create!(hash.merge(
+    :target_id => 1,
     :remote_ip => '127.0.0.1',
     :user_agent => 'rspec test',
-    :referrer => 'localhost'
+    :referer => 'localhost'
   ))
 end

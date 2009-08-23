@@ -22,8 +22,8 @@ module SimpleStats
       :reduce => "function(k, v) {return sum(v);}"
 
     # Schema
-    property :source_id
     property :target_id
+    property :source_id
 
     property :action
     property :accessed_at, :cast_as => Time, :read_only => true
@@ -31,10 +31,11 @@ module SimpleStats
     property :request_uri
     property :user_agent
     property :remote_ip
-    property :referrer
+    property :referer
+    property :meta
 
     # Validations
-    validates_present :action
+    validates_present :action, :target_id
     validates_with_method :ensure_valid_action
 
     # Callbacks
