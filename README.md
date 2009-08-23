@@ -93,13 +93,13 @@ How about two-way tracking between Users and Items, also with custom action trac
 Item is now the tracking target
 
     class Video < ActiveRecord::Base
-      simple_stat :as => :target, :supported_actions => %w(view play pause exit)
+      simple_stats :as => :target, :supported_actions => %w(view play pause exit)
     end
 
 User class is now the tracking source
 
     class User < ActiveRecord::Base
-      simple_stat :as => :source, :supported_actions => %w(view play pause exit)
+      simple_stats :as => :source, :supported_actions => %w(view play pause exit)
     end
 
 Usage
