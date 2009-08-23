@@ -1,0 +1,8 @@
+
+# Server configuration
+development_server: http://127.0.0.1:5984/simplestat_development
+
+# tracking configuration
+actions: 
+ - click
+ - impression

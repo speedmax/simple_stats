@@ -1,0 +1,4 @@
+
+== 0.1
+  * Create simple stat library (taylor luk)
+  
