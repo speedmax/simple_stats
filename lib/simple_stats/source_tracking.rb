@@ -16,13 +16,13 @@ module SimpleStats
     def self.attach_tracking_methods(klass, action)
       klass.class_eval <<-end_eval, __FILE__, __LINE__
 
-        def #{Config.tracking_prefix}#{action}(attributes)
-          attributes = {:source_id => self.id}.merge!(attributes)
-          Record.new(attributes).save
-        end
-        
-        def #{Config.tracking_prefix}#{action}_on(source, attributes)
-          self.#{Config.tracking_prefix}#{action}(attributes.merge(:source => source.id))
+        def #{Config.tracking_prefix}#{action}_on(target, attributes = {})
+          attributes = {
+            :action => '#{action}', 
+            :source_id => self.id,
+            :target_id => target.id
+          }.merge(attributes)
+          Record.create!(attributes)
         end
 
       end_eval
@@ -50,8 +50,10 @@ module SimpleStats
         end
 
         def #{Config.query_prefix}#{action.pluralize}_timestamps (date =nil, options = {})
+          options = {:raw => true, :reduce => false }.merge!(options)
+          
           self.#{action.pluralize}(date, options)['rows'].map do |row|
-            row['key'][1]
+            row['key'].last
           end
         end
 

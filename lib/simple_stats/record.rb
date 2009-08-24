@@ -6,7 +6,7 @@ module SimpleStats
     view_by :action, :source_id, :accessed_at,
       :map => 
         "function(doc) {
-          if ((doc['couchrest-type'] == 'SimpleStat::Record') && doc.action && doc.source_id && doc.accessed_at) {
+          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc.action && doc.source_id && doc.accessed_at) {
             emit([doc.action, doc.source_id, doc.accessed_at], 1);
           }
         }",
@@ -15,7 +15,7 @@ module SimpleStats
     view_by :action, :target_id, :accessed_at,
       :map => 
         "function(doc) {
-          if ((doc['couchrest-type'] == 'SimpleStat::Record') && doc.action && doc.target_id && doc.accessed_at) {
+          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc.action && doc.target_id && doc.accessed_at) {
             emit([doc.action, doc.target_id, doc.accessed_at], 1);
           }
         }",
@@ -26,7 +26,7 @@ module SimpleStats
     property :source_id
 
     property :action
-    property :accessed_at, :cast_as => Time, :read_only => true
+    property :accessed_at, :read_only => true
 
     property :request_uri
     property :user_agent
@@ -60,7 +60,7 @@ module SimpleStats
     end
   
     def generate_accessed_at
-      self['accessed_at'] = Time.now if new_document?
+      self['accessed_at'] = Time.now if new_record?
     end
   end
 end

@@ -47,5 +47,5 @@ task :default => :spec
 # Make a console, useful when working on tests
 desc "Generate a test console"
 task :console do
-   verbose( false ) { sh "irb -I lib/ -r 'simple_stat'" }
+   verbose( false ) { sh "irb -I lib/ -r 'simple_stats'" }
 end
