@@ -7,7 +7,7 @@ module SimpleStats
       
       def default_options
         {
-          :supported_actions => ['click', 'impressions'],
+          :supported_actions => ['click', 'impression'],
           :tracking_prefix => 'track_',
           :query_prefix => '',
           :record_class => SimpleStats::Record
