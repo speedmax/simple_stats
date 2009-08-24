@@ -45,27 +45,26 @@ Example
 Track basic stats (impressions, clicks) tracking for your items
 
     class Item < ActiveRecord::Base
-      simple_stat
+      simple_stats
     end
 
     Item.first.track_impression
     Item.first.impressions_count
     => 1
 
-
 Options
 ---
 
 #### setup options
 
-- :as (:target or :source, default :target)
+- **:as** (:target or :source, default :target)
   config standard tracking or two way tracking
-- :supported_actions (default : impression/click)
+- **:supported_actions** (default : impression/click)
   list of supported actions for stats tracking and reporting, it also supports custom actions
-- :query_prefix (default : '')
+- **:query_prefix** (default : '')
   prefix for reporting methods (item.clicks, item.clicks_count), it defaults to empty string
   for simplicity, you can add a prefix in case there is method name conflict
-- :tracking\_prefix (default : 'track_')
+- **:tracking\_prefix** (default : 'track_')
   prefix for tracking methods (item.track_click)
 
 #### Optional tracking attributes
