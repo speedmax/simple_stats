@@ -46,11 +46,11 @@ describe SimpleStats::SourceTracking do
       @user.impressions.count.should == 1
       
       # Yesterday
-      Time.stub!(:now).and_return(Time.new - 1.day)
+      Time.stub!(:now){ Time.new - 1.day }
       @user.track_impression_on(@video)
       @user.impressions.count.should_not == 2
       
-      Time.stub!(:now).and_return(Time.new)
+      Time.stub!(:now){ Time.new }
       @user.impressions.count.should == 1
     end
     
@@ -59,19 +59,19 @@ describe SimpleStats::SourceTracking do
       @user.track_impression_on(@video)
       
       # yesterday
-      Time.stub!(:now).and_return(Time.new - 1.day)
+      Time.stub!(:now){ Time.new - 1.day }
       @user.track_impression_on(@video)
       
       # a week before
-      Time.stub!(:now).and_return(Time.new - 1.week)
+      Time.stub!(:now){ Time.new - 1.week }
       @user.track_impression_on(@video)
   
       # a year before
-      Time.stub!(:now).and_return(Time.new - 1.year)
+      Time.stub!(:now) { Time.new - 1.year }
       @user.track_impression_on(@video)
   
       # Forward in time
-      Time.stub!(:now).and_return(Time.new)
+      Time.stub!(:now) { Time.new }
       @user.impressions(1.week.ago ... Time.now).count.should == 3
     end
     
@@ -82,12 +82,12 @@ describe SimpleStats::SourceTracking do
       @user.clicks.count.should == @user.clicks_count
       
       # Travel back in time and do some impression hits
-      Time.stub!(:now).and_return(Time.new - 1.week)
+      Time.stub!(:now) { Time.new - 1.week }
       10.times { @video.track_impression_by(@user) }
       
       # All impressions this week
-      @video.impressions_count(1.week.ago ... Time.now).should == 10
-      @video.impressions(1.week.ago ... Time.now).count.should == @video.impressions_count
+      @video.impressions_count(1.week.ago ... Time.new).should == 10
+      @video.impressions(1.week.ago ... Time.new).count.should == @video.impressions_count
     end
     
     it "should be able to get all row timestamps for tasks like charting  (ie: item.clicks_timestamps)" do
@@ -98,6 +98,20 @@ describe SimpleStats::SourceTracking do
         Time.parse(@video.impressions_timestamps.first)
       }.should_not raise_error
     end
-    
+
+    it "should privide hourly count (ie: item.clicks_by_hour)" do
+
+      Time.stub!(:now) { Time.new - 20.hours }
+      2.times{ @user.track_impression_on(@video) }
+      
+      Time.stub!(:now) { Time.new - 10.hours }
+      2.times{ @user.track_impression_on(@video) }
+      
+      @user.impressions_by_hour.keys.should == [
+        (Time.new - 20.hours).to_json[1, 13],
+        (Time.new - 10.hours).to_json[1, 13]
+      ]
+      @user.impressions_by_hour.values.should == [2, 2]
+    end
   end
 end

@@ -72,6 +72,37 @@ module SimpleStats
         end
         memoize :#{method_name}_timestamps
 
+        def #{method_name}_by_hour(date = nil, options = {})
+          records = SimpleStats::Record.by_action_and_target_id_and_accessed_at(
+            conditions_for('#{action}', date, {:raw => true, :reduce => false }.merge(options))
+          )['rows']
+
+          records.map! do |row|
+            row['key'].last
+          end
+
+          records.inject(Hash.new(0)) do |hash, value|
+            hash[value[0, 13]] += 1
+            hash
+          end
+        end
+
+        def #{method_name}_by_day(date = nil, options = {}) 
+          #{method_name}_by_hour(date, options).inject(Hash.new(0)) do |hash, (key, value)|
+            hash[key[0, 10]] += value
+
+            hash
+          end
+        end
+
+        def #{method_name}_by_month(date = nil, options = {})
+          #{method_name}_by_hour(date, options).inject(Hash.new(0)) do |hash, (key, value)|
+            hash[key[0, 7]] += value
+
+            hash
+          end
+        end
+
       end_eval
     end
     
