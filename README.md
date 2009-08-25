@@ -9,6 +9,11 @@ object view and click counting.
 ### Version
 0.1 alpha
 
+TODO
+---
+  implement log aggregation base on a time interval (1min, 5min), 
+  it seems the only way to scale logging in couchdb
+
 Features
 ---
 
