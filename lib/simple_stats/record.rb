@@ -26,7 +26,7 @@ module SimpleStats
     property :source_id
 
     property :action
-    property :accessed_at, :read_only => true
+    property :accessed_at
 
     property :request_uri
     property :user_agent
@@ -60,7 +60,7 @@ module SimpleStats
     end
   
     def generate_accessed_at
-      self['accessed_at'] = Time.now if new_record?
+      self['accessed_at'] = Time.now if new_record? && self['accessed_at'].blank?
     end
   end
 end
