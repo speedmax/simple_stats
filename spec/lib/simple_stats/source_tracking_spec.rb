@@ -77,22 +77,24 @@ describe SimpleStats::SourceTracking do
     
     it "should be able to hit count within a date range (ie: item.clicks_count)" do
       
-      10.times { @user.track_click_on(@video) }
-      @user.clicks_count.should == 10
+      2.times { @user.track_click_on(@video) }
+      @user.clicks_count.should == 2
       @user.clicks.count.should == @user.clicks_count
       
       # Travel back in time and do some impression hits
       Time.stub!(:now) { Time.new - 1.week }
-      10.times { @video.track_impression_by(@user) }
+      3.times { @video.track_impression_by(@user) }
       
       # All impressions this week
-      @video.impressions_count(1.week.ago ... Time.new).should == 10
-      @video.impressions(1.week.ago ... Time.new).count.should == @video.impressions_count
+      this_week = 1.week.ago ... Time.new
+      
+      @video.impressions_count(this_week).should == 3
+      @video.impressions(this_week).count.should == 3
     end
     
     it "should be able to get all row timestamps for tasks like charting  (ie: item.clicks_timestamps)" do
-      10.times { @video.track_impression_by(@user) }
-      @video.impressions_timestamps.count == 10
+      2.times { @video.track_impression_by(@user) }
+      @video.impressions_timestamps.count == 2
       
       lambda{
         Time.parse(@video.impressions_timestamps.first)
@@ -107,11 +109,13 @@ describe SimpleStats::SourceTracking do
       Time.stub!(:now) { Time.new - 10.hours }
       2.times{ @user.track_impression_on(@video) }
       
-      @user.impressions_by_hour.keys.should == [
+      result = @user.impressions_by_hour(3.days.ago ... Time.now)
+
+      result.keys.should == [
         (Time.new - 20.hours).to_json[1, 13],
         (Time.new - 10.hours).to_json[1, 13]
       ]
-      @user.impressions_by_hour.values.should == [2, 2]
+      result.values.should == [2, 2]
     end
   end
 end

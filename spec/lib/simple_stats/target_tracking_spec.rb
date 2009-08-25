@@ -10,14 +10,13 @@ describe SimpleStats::TargetTracking do
     @user.id = rand(1000)
   end
   
-  
   describe "tracking methods" do
     it "should have tracking methods for default actions" do
       [:track_impression, :track_click].each do |action|
         @item.respond_to?(action).should == true
       end
     end
-    
+
     it "should have standard tracking method for target-only" do
       reset_test_db!
       
@@ -93,22 +92,22 @@ describe SimpleStats::TargetTracking do
     
     it "should be able to hit count within a date range (ie: item.clicks_count)" do
       
-      10.times { @item.track_click }
-      @item.clicks_count.should == 10
+      2.times { @item.track_click }
+      @item.clicks_count.should == 2
       @item.clicks.count.should == @item.clicks_count
       
       # Travel back in time and do some impression hits
       Time.stub!(:now) { Time.new - 1.week }
-      10.times { @item.track_impression }
+      2.times { @item.track_impression }
       
       # All impressions this week
-      @item.impressions_count(1.week.ago ... Time.now).should == 10
+      @item.impressions_count(1.week.ago ... Time.now).should == 2
       @item.impressions(1.week.ago ... Time.now).count.should == @item.impressions_count
     end
     
     it "should be able to get all row timestamps for tasks like charting  (ie: item.clicks_timestamps)" do
-      10.times { @item.track_impression }
-      @item.impressions_timestamps.count == 10
+      2.times { @item.track_impression }
+      @item.impressions_timestamps.count == 2
       
       lambda{
         Time.parse(@item.impressions_timestamps.first)
@@ -121,13 +120,15 @@ describe SimpleStats::TargetTracking do
       2.times{ @item.track_impression }
       
       Time.stub!(:now) { Time.new - 10.hours }
-      2.times{ @item.track_impression }
+      3.times{ @item.track_impression }
       
-      @item.impressions_by_hour.keys.should == [
+      result = @item.impressions_by_hour(1.day.ago ... Time.new)
+      
+      result.keys.should == [
         (Time.new - 20.hours).to_json[1, 13],
         (Time.new - 10.hours).to_json[1, 13]
       ]
-      @item.impressions_by_hour.values.should == [2, 2]
+      result.values.should == [2, 3]
     end
     
     it "should privide daily count (ie: item.clicks_by_day)" do
@@ -136,17 +137,17 @@ describe SimpleStats::TargetTracking do
       1.times { @item.track_impression }
       
       Time.stub!(:now) { Time.new - 1.day }
-      1.times { @item.track_impression }
+      2.times { @item.track_impression }
 
-      @item.impressions_by_day(3.days.ago ... Time.new).values.should == [1,1]
+      @item.impressions_by_day(2.days.ago ... Time.new).values.should == [1,2]
     end
 
     it "should privide monthly count (ie: item.clicks_by_month)" do
       
       Time.stub!(:now) { Time.new }
-      10.times{ @item.track_impression }
+      2.times{ @item.track_impression }
 
-      @item.impressions_by_month.values.should == [10]
+      @item.impressions_by_month.values.should == [2]
     end
   
   end
