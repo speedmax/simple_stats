@@ -20,7 +20,9 @@ module SimpleStats
           }
         }",
       :reduce => "function(k, v) {return sum(v);}"
-
+    
+    unique_id :generate_uuid
+    
     # Schema
     property :target_id
     property :source_id
@@ -50,6 +52,23 @@ module SimpleStats
         return result.first['value'] unless result.empty?
       end
       0
+    end
+
+    def generate_uuid
+      (@@seq ||= SimpleStats::SeqID.new).call
+    end
+        
+    # Javascript compatible timestamp
+    def timestamp
+      id[0,12].to_i(16)
+    end
+    
+    def created_time
+      Time.at(timestamp/ 1000.0) rescue nil
+    end
+    
+    def save(bulk = true)
+      super
     end
     
   private

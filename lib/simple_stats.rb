@@ -27,5 +27,5 @@ module SimpleStats
   autoload :Extension,        'simple_stats/extension'
   autoload :TargetTracking,   'simple_stats/target_tracking'
   autoload :SourceTracking,   'simple_stats/source_tracking'
-
+  autoload :SeqID,            'simple_stats/more/seq_id'
 end
