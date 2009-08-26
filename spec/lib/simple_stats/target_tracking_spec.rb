@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/../../spec_helper"
 
-describe SimpleStats::TargetTracking do
+describe SimpleStats::Tracking do
   
   before do
     @item = Item.new
@@ -10,13 +10,13 @@ describe SimpleStats::TargetTracking do
     @user.id = rand(1000)
   end
   
-  describe "tracking methods" do
+  describe "Target tracking" do
     it "should have tracking methods for default actions" do
       [:track_impression, :track_click].each do |action|
         @item.respond_to?(action).should == true
       end
     end
-
+    
     it "should have standard tracking method for target-only" do
       reset_test_db!
       
@@ -43,11 +43,11 @@ describe SimpleStats::TargetTracking do
       @user.impressions_count.should == 1
     end
   end
-  
+
   describe "query methods" do
     it "should have generated query methods for default actions" do
       default_actions = %w(
-        clicks clicks_count clicks_timestamps clicks_by_hour clicks_by_day clicks_by_month
+        clicks clicks_count clicks_by_hour clicks_by_day clicks_by_month
       )
 
       default_actions.each do |action|
@@ -104,18 +104,8 @@ describe SimpleStats::TargetTracking do
       @item.impressions_count(1.week.ago ... Time.now).should == 2
       @item.impressions(1.week.ago ... Time.now).count.should == @item.impressions_count
     end
-    
-    it "should be able to get all row timestamps for tasks like charting  (ie: item.clicks_timestamps)" do
-      2.times { @item.track_impression }
-      @item.impressions_timestamps.count == 2
-      
-      lambda{
-        Time.parse(@item.impressions_timestamps.first)
-      }.should_not raise_error
-    end
-  
-    it "should privide hourly count (ie: item.clicks_by_hour)" do
 
+    it "should privide hourly count (ie: item.clicks_by_hour)" do
       Time.stub!(:now) { Time.new - 20.hours }
       2.times{ @item.track_impression }
       
@@ -132,7 +122,6 @@ describe SimpleStats::TargetTracking do
     end
     
     it "should privide daily count (ie: item.clicks_by_day)" do
-      
       Time.stub!(:now) { Time.new - 2.day }
       1.times { @item.track_impression }
       
@@ -143,7 +132,6 @@ describe SimpleStats::TargetTracking do
     end
 
     it "should privide monthly count (ie: item.clicks_by_month)" do
-      
       Time.stub!(:now) { Time.new }
       2.times{ @item.track_impression }
 

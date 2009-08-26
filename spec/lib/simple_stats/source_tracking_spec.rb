@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + "/../../spec_helper"
 
-describe SimpleStats::SourceTracking do
+describe SimpleStats::Tracking::Source do
   
   before do
     @video = Video.new
@@ -32,8 +32,8 @@ describe SimpleStats::SourceTracking do
   describe "query methods" do
     it "should have generated query methods for default actions" do
      default_actions = %w(
-       impressions impressions_count impressions_timestamps
-       clicks clicks_count clicks_timestamps)
+       impressions impressions_count
+       clicks clicks_count)
  
      default_actions.each do |action|
        @user.respond_to?(action).should == true
@@ -91,15 +91,7 @@ describe SimpleStats::SourceTracking do
       @video.impressions_count(this_week).should == 3
       @video.impressions(this_week).count.should == 3
     end
-    
-    it "should be able to get all row timestamps for tasks like charting  (ie: item.clicks_timestamps)" do
-      2.times { @video.track_impression_by(@user) }
-      @video.impressions_timestamps.count == 2
-      
-      lambda{
-        Time.parse(@video.impressions_timestamps.first)
-      }.should_not raise_error
-    end
+
 
     it "should privide hourly count (ie: item.clicks_by_hour)" do
 
