@@ -14,7 +14,9 @@ def reset_test_db!
 end
 
 def mock_model(name)
-  mock(name.to_sym).stub!(:id).and_return(rand(1000))
+  record = name.classify.constantize.new
+  record.stub!(:id).and_return(rand(1000))
+  record
 end
 
 Spec::Runner.configure do |config|

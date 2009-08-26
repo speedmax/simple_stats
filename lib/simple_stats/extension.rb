@@ -3,7 +3,6 @@ module SimpleStats
 
     def self.included(base)
       base.class_eval do
-        include InstanceMethods
         extend ClassMethods
       end
     end
@@ -11,34 +10,30 @@ module SimpleStats
     module ClassMethods
       def simple_stats(options = {})
         Config.setup(options)
- 
-        if options[:as] == :source
-          tracking_method = SourceTracking
-        else
-          tracking_method = TargetTracking
-        end
         
         class_eval do
-          include tracking_method
+          include Tracking
+
+          if options[:as] == :source
+            include Tracking::Source
+          else
+            include Tracking::Target
+          end
         end
       end
-    end
+      
+      def delegate_stats(options = {})
+        raise "Required to specify stats delegation target" unless options[:to]
+        
+        unless options[:prefix]
+          options[:prefix] = options[:to] 
+        end
 
-    module InstanceMethods
-
-      # Build condition for search
-      def conditions_for(action, from = nil, options = {})
-       from = Time.now unless from
-
-       if from.is_a? Range
-         from, to = from.first, from.last
-       else
-         to = from
-       end
-       conditions = {
-         :startkey => [action, self.id, Time.parse(from.beginning_of_day.to_s)],
-         :endkey => [action, self.id, Time.parse(to.end_of_day.to_s)]
-       }.merge(options)
+        class_eval do
+          include Delegation
+        end
+        
+        Delegation.attach(self, options)
       end
     end
   end

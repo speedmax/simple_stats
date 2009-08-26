@@ -42,20 +42,23 @@ module SimpleStats
 
     # Callbacks
     save_callback :before, :generate_accessed_at
-
-    # Return count for any couchdb view view that has a simple reduce sum(v)
-    def self.count(view = :all, *args, &block)
-      if has_view?(view)
-        query = args.shift || {}
-        result = view(view, {:reduce => true}.merge(query), *args, &block)['rows']
+    
+    
+    class << self
+      # Return count for any couchdb view view that has a simple reduce sum(v)
+      def count(view = :all, *args, &block)
+        if has_view?(view)
+          query = args.shift || {}
+          result = view(view, {:reduce => true}.merge(query), *args, &block)['rows']
         
-        return result.first['value'] unless result.empty?
+          return result.first['value'] unless result.empty?
+        end
+        0
       end
-      0
     end
-
+    
     def generate_uuid
-      (@@seq ||= SimpleStats::SeqID.new).call
+      (@seq ||= SimpleStats::SeqID.new).call
     end
         
     # Javascript compatible timestamp
@@ -66,11 +69,7 @@ module SimpleStats
     def created_time
       Time.at(timestamp/ 1000.0) rescue nil
     end
-    
-    def save(bulk = true)
-      super
-    end
-    
+
   private
     def ensure_valid_action
       result = Config.supported_actions.include?(self['action'])
