@@ -25,10 +25,10 @@ module SimpleStats
       def delegate_stats(options = {})
         raise "Required to specify stats delegation target" unless options[:to]
         
-        unless options[:prefix]
+        if options[:prefix].nil?
           options[:prefix] = options[:to] 
         end
-
+        
         class_eval do
           include Delegation
         end

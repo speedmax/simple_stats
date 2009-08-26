@@ -40,11 +40,38 @@ describe SimpleStats::Delegation do
       @group.items_impressions_count.should == 20
     end
   end
-end
+  
+  describe "Delegation prefix" do
 
-class User
-  attr_accessor :items
-  delegate_stats :to => :items
+    it "should use :to as :prefix no :prefix option is set" do
+      @user.respond_to?(:items_impressions).should == true
+    end
+    
+    it "should not use prefix the delegated methods if :prefix => false" do
+      User.class_eval do
+        delegate_stats :to => :target1, :prefix => false
+        
+        def target1
+          items
+        end
+      end
+      
+      @user.respond_to?(:target1_impressions).should == false
+      @user.respond_to?(:impressions).should == true
+    end
+    
+    it "should use custom prefix if prefix option is set" do
+      User.class_eval do
+        delegate_stats :to => :target2, :prefix => 'yo_mama'
+        
+        def target2
+          items
+        end
+      end
+      
+      @user.respond_to?(:yo_mama_impressions).should == true
+    end
+  end
 end
 
 class Group
