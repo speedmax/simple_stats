@@ -24,6 +24,7 @@ module SimpleStats
       
       def delegate_stats(options = {})
         raise "Required to specify stats delegation target" unless options[:to]
+        Config.setup
         
         if options[:prefix].nil?
           options[:prefix] = options[:to] 
