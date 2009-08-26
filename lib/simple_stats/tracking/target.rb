@@ -90,7 +90,7 @@ module SimpleStats
         slice_stats(records, 0, 7)
       end
       
-      def stats_reocrds_by_year(*args)
+      def stats_records_by_year(*args)
         records = stats_records_by_hour(*args)
         slice_stats(records, 0, 4)
       end

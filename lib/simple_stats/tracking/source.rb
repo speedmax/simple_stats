@@ -93,7 +93,7 @@ module SimpleStats
       end
 
       # Return stats reocrds count by year (ie: source.clicks_by_year)
-      def stats_reocrds_by_year(*args)
+      def stats_records_by_year(*args)
         records = stats_records_by_hour(*args)
         slice_stats(records, 0, 4)
       end

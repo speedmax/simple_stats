@@ -16,6 +16,7 @@ describe SimpleStats::Tracking do
         @item.respond_to?(action).should == true
       end
     end
+
     
     it "should have standard tracking method for target-only" do
       reset_test_db!
@@ -47,7 +48,7 @@ describe SimpleStats::Tracking do
   describe "query methods" do
     it "should have generated query methods for default actions" do
       default_actions = %w(
-        clicks clicks_count clicks_by_hour clicks_by_day clicks_by_month
+        clicks clicks_count clicks_by_minute clicks_by_hour clicks_by_day clicks_by_month clicks_by_year
       )
 
       default_actions.each do |action|
