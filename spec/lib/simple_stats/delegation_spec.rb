@@ -22,7 +22,7 @@ describe SimpleStats::Delegation do
     
     it "should return stats records count (ie: website.page_clicks_count) " do
       @user.items_impressions_count.should == 10
-      @user.items_impressions_count.should == @user.items_impressions.count
+      @user.items_impressions_count.should == @user.items_impressions.length
     end
     
     it "should return stats records by time (ie: website.page_clicks_by_minute)" do
@@ -43,34 +43,36 @@ describe SimpleStats::Delegation do
   
   describe "Delegation prefix" do
 
+    before do
+      @user2 = User2.new
+      @user2.items = @user.items.dup
+    end
+
     it "should use :to as :prefix no :prefix option is set" do
       @user.respond_to?(:items_impressions).should == true
     end
     
     it "should not use prefix the delegated methods if :prefix => false" do
-      User.class_eval do
-        delegate_stats :to => :target1, :prefix => false
-        
-        def target1
-          items
-        end
-      end
-      
-      @user.respond_to?(:target1_impressions).should == false
-      @user.respond_to?(:impressions).should == true
+      @user2.respond_to?(:items_impressions).should == false
+      @user2.respond_to?(:impressions).should == true
     end
     
     it "should use custom prefix if prefix option is set" do
-      User.class_eval do
-        delegate_stats :to => :target2, :prefix => 'yo_mama'
-        
-        def target2
-          items
-        end
-      end
-      
-      @user.respond_to?(:yo_mama_impressions).should == true
+      @user2.respond_to?(:ur_mama_impressions).should == true
+      @user2.respond_to?(:target_impressions).should == false
     end
+  end
+end
+
+class User2
+  include SimpleStats::Extension
+  attr_accessor :items
+  
+  delegate_stats :to => :items, :prefix => false
+  delegate_stats :to => :target, :prefix => 'ur_mama'
+  
+  def target
+    items
   end
 end
 
