@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe SimpleStats::Delegation do
-  before do
+  before :all do
     reset_test_db!
     
     @user = User.new
@@ -31,19 +31,17 @@ describe SimpleStats::Delegation do
   end
   
   describe "Nested Delegation" do
-    before do    
+    it "should be able to delegate to 2 levels deep" do
       @group = Group.new
       @group.users = [@user, @user]
-    end
-    
-    it "should be able to delegate to 2 levels deep" do
+      
       @group.items_impressions_count.should == 20
     end
   end
   
   describe "Delegation prefix" do
 
-    before do
+    before :all do
       @user2 = User2.new
       @user2.items = @user.items.dup
     end

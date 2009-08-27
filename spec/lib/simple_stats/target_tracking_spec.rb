@@ -4,10 +4,10 @@ describe SimpleStats::Tracking do
   
   before do
     @item = Item.new
-    @item.id = rand(1000)
+    @item.id = rand(1000) + Time.now.usec
     
     @user = User.new
-    @user.id = rand(1000)
+    @user.id = rand(1000) + Time.now.usec
   end
   
   describe "Target tracking" do
@@ -17,9 +17,7 @@ describe SimpleStats::Tracking do
       end
     end
 
-    
     it "should have standard tracking method for target-only" do
-      reset_test_db!
       
       record  = @item.track_impression
       record.target_id.should == @item.id

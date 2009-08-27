@@ -4,10 +4,10 @@ describe SimpleStats::Tracking::Source do
   
   before do
     @video = Video.new
-    @video.id = rand(1000)
+    @video.id = rand(1000) + Time.now.usec
     
     @user = User.new
-    @user.id = rand(1000)
+    @user.id = rand(1000) + Time.now.usec
   end
   
   describe "tracking methods" do
