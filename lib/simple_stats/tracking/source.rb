@@ -15,9 +15,11 @@ module SimpleStats
         end
 
         # Memoization
-        base.extend ActiveSupport::Memoizable
-        base.class_eval do
-          memoize :stats_records_by_minute, :stats_records_count
+        if Config.memorize && !base.is_a?(ActiveSupport::Memoizable)
+          base.extend ActiveSupport::Memoizable
+          base.class_eval do
+            memoize :stats_records_by_minute, :stats_records_count
+          end
         end
       end
 
@@ -76,7 +78,7 @@ module SimpleStats
 
       # Return stats reocrds count by hour (ie: source.clicks_by_hour)
       def stats_records_by_hour(*args)
-        records = stats_records_by_minute(action, date, options)
+        records = stats_records_by_minute(*args)
         slice_stats(records, 0, 13)
       end
 
