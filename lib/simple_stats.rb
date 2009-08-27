@@ -4,10 +4,10 @@ require 'active_support'
 
 begin
   require 'couchrest'
-  raise if CouchRest.version < '0.3'
+  raise if CouchRest::VERSION < '0.3'
 rescue Exception
   raise "
-  You need install couchrest gem >= 0.3 
+  You need install couchrest gem >= 0.3, currently #{CouchRest::VERSION}
   Install latest couchrest gem using
     sudo gem install mattetti-couchrest --source http://gems.github.com
   " unless Kernel.const_defined?("CouchRest")

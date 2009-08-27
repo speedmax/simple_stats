@@ -5,12 +5,14 @@ require "#{File.dirname(__FILE__)}/fixtures/user"
 require "#{File.dirname(__FILE__)}/fixtures/item"
 
 
-COUCH_DB = CouchRest.database!('http://127.0.0.1:5984/simplestats_test')
-SimpleStats::Record.use_database COUCH_DB
+raise "Please install a new version rspec" if Spec::VERSION::STRING < "1.2.8"
+
+TEST_COUCHDB = CouchRest.database!('http://127.0.0.1:5984/simplestats_test') unless defined?(TEST_COUCHDB)
+SimpleStats::Record.use_database TEST_COUCHDB
 
 def reset_test_db!
-  COUCH_DB.recreate! rescue nil
-  COUCH_DB
+  TEST_COUCHDB.recreate! rescue nil
+  TEST_COUCHDB
 end
 
 def mock_model(name)
@@ -24,6 +26,6 @@ Spec::Runner.configure do |config|
     reset_test_db!
   end
   config.after(:all) do
-    # COUCH_DB.delete! rescue nil
+    # TEST_COUCHDB.delete! rescue nil
   end
 end
