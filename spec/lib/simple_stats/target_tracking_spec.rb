@@ -59,14 +59,14 @@ describe SimpleStats::Tracking do
     it "should get state record entries (ie: item.clicks) and using today as default daterange" do
       # A new impression hit
       @item.track_impression
-      @item.impressions.count.should == 1
+      @item.impressions.length.should == 1
       
       # Yesterday
       Time.stub!(:now) { Time.new - 1.day}
-      @item.impressions.count.should_not == 2
+      @item.impressions.length.should_not == 2
       
       Time.stub!(:now) { Time.new }
-      @item.impressions.count.should == 1
+      @item.impressions.length.should == 1
     end
 
     it "should be able to get all stats records with in a date range (ie: item.clicks)" do
@@ -87,7 +87,7 @@ describe SimpleStats::Tracking do
   
       # Forward in time
       Time.stub!(:now) { Time.new }
-      @item.impressions(1.week.ago ... Time.now).count.should == 3
+      @item.impressions(1.week.ago ... Time.now).should have(3).things
   
     end
     
@@ -95,7 +95,7 @@ describe SimpleStats::Tracking do
       
       2.times { @item.track_click }
       @item.clicks_count.should == 2
-      @item.clicks.count.should == @item.clicks_count
+      @item.clicks.length.should == @item.clicks_count
       
       # Travel back in time and do some impression hits
       Time.stub!(:now) { Time.new - 1.week }
@@ -103,7 +103,7 @@ describe SimpleStats::Tracking do
       
       # All impressions this week
       @item.impressions_count(1.week.ago ... Time.now).should == 2
-      @item.impressions(1.week.ago ... Time.now).count.should == @item.impressions_count
+      @item.impressions(1.week.ago ... Time.now).length.should == @item.impressions_count
     end
 
     it "should privide hourly count (ie: item.clicks_by_hour)" do
@@ -111,15 +111,13 @@ describe SimpleStats::Tracking do
       2.times{ @item.track_impression }
       
       Time.stub!(:now) { Time.new - 10.hours }
-      3.times{ @item.track_impression }
+      2.times{ @item.track_impression }
       
       result = @item.impressions_by_hour(1.day.ago ... Time.new)
       
-      result.keys.should == [
-        (Time.new - 20.hours).to_json[1, 13],
-        (Time.new - 10.hours).to_json[1, 13]
-      ]
-      result.values.should == [2, 3]
+      result.keys.include?( (Time.new - 20.hours).to_json[1, 13] ).should == true
+      result.keys.include?( (Time.new - 10.hours).to_json[1, 13] ).should == true
+      result.values.should == [2, 2]
     end
     
     it "should privide daily count (ie: item.clicks_by_day)" do
