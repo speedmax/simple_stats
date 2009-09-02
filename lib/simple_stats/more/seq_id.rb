@@ -6,8 +6,8 @@ module SimpleStats
   class SeqID #:nodoc:
     RAND_SIZE = (1<<64) - (1<<32)  #:nodoc:
 
-    def initialize
-      @ms = (::Time.now.to_f * 1000.0).to_i   # compatible with Javascript Date
+    def initialize(from = Time.now)
+      @ms = (from.to_f * 1000.0).to_i   # compatible with Javascript Date
       @pid = (Process.pid rescue rand(65536)) & 0xffff
       @seq = nil
     end

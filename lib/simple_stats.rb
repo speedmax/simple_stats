@@ -24,6 +24,7 @@ module SimpleStats
 
   autoload :Config,           'simple_stats/config'
   autoload :Record,           'simple_stats/record'
+  autoload :Summery,          'simple_stats/summery'
   autoload :Extension,        'simple_stats/extension'
   autoload :Tracking,         'simple_stats/tracking' 
   autoload :Delegation,       'simple_stats/delegation'
@@ -31,4 +32,6 @@ module SimpleStats
   
   require File.dirname(__FILE__) + '/simple_stats/tracking/target'
   require File.dirname(__FILE__) + '/simple_stats/tracking/source'
+  require File.dirname(__FILE__) + '/simple_stats/core_ext/time'
+
 end
