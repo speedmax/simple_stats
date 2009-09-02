@@ -1,6 +1,5 @@
 module SimpleStats
   module Delegation
-
     class << self
       def attach(base, options)
         prefix = ""

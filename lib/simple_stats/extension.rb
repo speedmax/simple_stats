@@ -1,6 +1,5 @@
 module SimpleStats
   module Extension
-
     def self.included(base)
       base.class_eval do
         extend ClassMethods

@@ -2,12 +2,19 @@ module SimpleStats
   class Record < CouchRest::ExtendedDocument
     include CouchRest::Validation
 
-    # Views
+    view_by :accessed_at, 
+      :map => 
+        "function(doc) {
+          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc['accessed_at']) {
+            emit(doc['accessed_at'], null);
+          }
+        }"
+
     view_by :action, :source_id, :accessed_at,
       :map => 
         "function(doc) {
-          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc.action && doc.source_id && doc.accessed_at) {
-            emit([doc.action, doc.source_id, doc.accessed_at], 1);
+          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc.action && doc.source_id && doc.source_type && doc.accessed_at) {
+            emit([doc.action, doc.source_id, doc.source_type, doc.accessed_at], 1);
           }
         }",
       :reduce => "function(k, v) {return sum(v);}"
@@ -15,8 +22,8 @@ module SimpleStats
     view_by :action, :target_id, :accessed_at,
       :map => 
         "function(doc) {
-          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc.action && doc.target_id && doc.accessed_at) {
-            emit([doc.action, doc.target_id, doc.accessed_at], 1);
+          if ((doc['couchrest-type'] == 'SimpleStats::Record') && doc.action && doc.target_id && doc.target_type &&doc.accessed_at) {
+            emit([doc.action, doc.target_id, doc.target_type, doc.accessed_at], 1);
           }
         }",
       :reduce => "function(k, v) {return sum(v);}"
@@ -24,7 +31,10 @@ module SimpleStats
     unique_id :generate_uuid
     
     # Schema
+    property :target_type
     property :target_id
+    
+    property :source_type
     property :source_id
 
     property :action
@@ -47,6 +57,10 @@ module SimpleStats
     class << self
       # Return count for any couchdb view view that has a simple reduce sum(v)
       def count(view = :all, *args, &block)
+        if view == :all
+          return super({}, *args) 
+        end
+        
         if has_view?(view)
           query = args.shift || {}
           result = view(view, {:reduce => true}.merge(query), *args, &block)['rows']
@@ -56,11 +70,20 @@ module SimpleStats
         0
       end
     end
+    # 
+    # def generate_uuid
+    #   (@seq ||= SimpleStats::SeqID.new).call
+    # end
     
     def generate_uuid
-      (@seq ||= SimpleStats::SeqID.new).call
+      if self[:accessed_at]
+        time = self[:accessed_at]
+      else
+        time = Time.now
+      end
+      (@seq ||= SimpleStats::SeqID.new(time)).call
     end
-        
+    
     # Javascript compatible timestamp
     def timestamp
       id[0,12].to_i(16)

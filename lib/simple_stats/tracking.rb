@@ -3,7 +3,6 @@ module SimpleStats
 
     # Build condition for search
     def conditions_for(action, from = nil, options = {})
-
       case from
       when Range
         from, to = from.first, from.last
@@ -14,8 +13,8 @@ module SimpleStats
       end
 
       conditions = {
-        :startkey => [action, self.id, Time.parse(from.beginning_of_day.to_s)],
-        :endkey => [action, self.id, Time.parse(to.end_of_day.to_s)]
+        :startkey => [action, self.id, self.class.to_s, Time.at(from.beginning_of_day)],
+        :endkey => [action, self.id, self.class.to_s, Time.at(to.end_of_day)]
       }.merge(options)
     end
   end

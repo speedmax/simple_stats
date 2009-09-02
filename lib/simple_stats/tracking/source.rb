@@ -45,7 +45,12 @@ module SimpleStats
       # Tracking methods
       def tracking_on_target(action, target, attrs = {})
         Record.create!(
-          {:action => action, :target_id => target.id, :source_id => self.id }.merge(attrs)
+          { :action => action,
+            :target_id => target.id, 
+            :target_type => target.class.to_s,
+            :source_id => self.id,
+            :source_type => self.class.to_s
+          }.merge(attrs)
         )
       end
 
