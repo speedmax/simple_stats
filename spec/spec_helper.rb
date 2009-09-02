@@ -9,6 +9,7 @@ raise "Please install a new version rspec" if Spec::VERSION::STRING < "1.2.8"
 
 TEST_COUCHDB = CouchRest.database!('http://127.0.0.1:5984/simplestats_test') unless defined?(TEST_COUCHDB)
 SimpleStats::Record.use_database TEST_COUCHDB
+SimpleStats::Summery.use_database TEST_COUCHDB
 
 def reset_test_db!
   TEST_COUCHDB.recreate! rescue nil
@@ -17,7 +18,7 @@ end
 
 def mock_model(name)
   record = name.classify.constantize.new
-  record.stub!(:id).and_return(rand(1000))
+  record.stub!(:id).and_return(rand(1000) + Time.new.usec)
   record
 end
 
