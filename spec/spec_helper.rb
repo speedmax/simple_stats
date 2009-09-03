@@ -26,6 +26,7 @@ Spec::Runner.configure do |config|
   config.before(:all) do
     reset_test_db!
   end
+  
   config.after(:all) do
     # TEST_COUCHDB.delete! rescue nil
   end

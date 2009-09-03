@@ -4,6 +4,9 @@ describe SimpleStats::Delegation do
   before :all do
     reset_test_db!
     
+    Time.stub!(:now) {Time.new - 10.minutes}
+
+    
     @user = User.new
     @user.id = rand(100)
     @user.items = (1..10).inject([]) {|items, id|
@@ -13,6 +16,9 @@ describe SimpleStats::Delegation do
       
       items << item
     }
+    
+    Time.stub!(:now) { Time.new }
+    SimpleStats::Summery.build
   end
   
   describe "Delegate query method" do
@@ -34,7 +40,6 @@ describe SimpleStats::Delegation do
     it "should be able to delegate to 2 levels deep" do
       @group = Group.new
       @group.users = [@user, @user]
-      
       @group.items_impressions_count.should == 20
     end
   end

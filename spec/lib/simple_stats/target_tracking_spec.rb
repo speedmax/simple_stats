@@ -18,25 +18,38 @@ describe SimpleStats::Tracking do
     end
 
     it "should have standard tracking method for target-only" do
+      reset_test_db!
       
+      Time.stub!(:now) { Time.new - 10.minutes}
+
       record  = @item.track_impression
       record.target_id.should == @item.id
       record.action.should == 'impression'
       
-      @item.impressions_count.should == 1
-      
       record  = @item.track_click
       record.target_id.should == @item.id
       record.action.should == 'click'
+
+      Time.stub!(:now) { Time.new }
+
+      SimpleStats::Summery.build
+      
+      @item.impressions_count.should == 1
       
       @item.clicks_count.should == 1
     end
     
     it "should have generate two-way traching method (target + source)" do
+      reset_test_db!
+      
+      Time.stub!(:now) { Time.new - 10.minutes }
       record = @item.track_impression_by(@user)
       record.target_id.should == @item.id
       record.source_id.should == @user.id
       record.action.should == 'impression'
+      
+      Time.stub!(:now) { Time.new}
+      SimpleStats::Summery.build
       
       @item.impressions_count.should == 1
       @user.impressions_count.should == 1
@@ -90,47 +103,73 @@ describe SimpleStats::Tracking do
     end
     
     it "should be able to hit count within a date range (ie: item.clicks_count)" do
+      reset_test_db!
+      
+      Time.stub!(:now) { Time.new - 30.minutes }
       
       2.times { @item.track_click }
+      
+      Time.stub!(:now) { Time.new - 20.minutes}
+      SimpleStats::Summery.build
+      
       @item.clicks_count.should == 2
       @item.clicks.length.should == @item.clicks_count
       
       # Travel back in time and do some impression hits
-      Time.stub!(:now) { Time.new - 1.week }
+      Time.stub!(:now) { Time.new - 10.minutes }
       2.times { @item.track_impression }
       
+      Time.stub!(:now) { Time.new }
+      
+      SimpleStats::Summery.build
+
       # All impressions this week
-      @item.impressions_count(1.week.ago ... Time.now).should == 2
-      @item.impressions(1.week.ago ... Time.now).length.should == @item.impressions_count
+      @item.impressions_count(35.minutes.ago .. Time.now ).should == 2
+      @item.impressions(35.minutes.ago .. Time.now ).length.should == @item.impressions_count
     end
 
     it "should privide hourly count (ie: item.clicks_by_hour)" do
-      Time.stub!(:now) { Time.new - 20.hours }
+      reset_test_db!
+      
+      Time.stub!(:now) { Time.new - 4.hours }
       2.times{ @item.track_impression }
       
-      Time.stub!(:now) { Time.new - 10.hours }
+      Time.stub!(:now) { Time.new - 2.hours }
       2.times{ @item.track_impression }
       
-      result = @item.impressions_by_hour(1.day.ago ... Time.new)
+      Time.stub!(:now) { Time.new + 1.hour}
+      SimpleStats::Summery.build(1.hour)
+
+      result = @item.impressions_by_hour(1.day.ago ... Time.now)
       
-      result.keys.include?( (Time.new - 20.hours).to_json[1, 13] ).should == true
-      result.keys.include?( (Time.new - 10.hours).to_json[1, 13] ).should == true
+      result.keys.include?( (Time.new - 4.hours).to_json[1, 13] ).should == true
+      result.keys.include?( (Time.new - 2.hours).to_json[1, 13] ).should == true
       result.values.should == [2, 2]
     end
     
     it "should privide daily count (ie: item.clicks_by_day)" do
+      reset_test_db!
+
       Time.stub!(:now) { Time.new - 2.day }
       1.times { @item.track_impression }
       
       Time.stub!(:now) { Time.new - 1.day }
       2.times { @item.track_impression }
+      
+      Time.stub!(:now){ Time.new }
+      
+      SimpleStats::Summery.build(10.minutes)
 
-      @item.impressions_by_day(2.days.ago ... Time.new).values.should == [1,2]
+      results = @item.impressions_by_day(3.days.ago ... Time.new)
+      results.values.should == [1,2]
     end
 
     it "should privide monthly count (ie: item.clicks_by_month)" do
-      Time.stub!(:now) { Time.new }
+      Time.stub!(:now) { Time.new - 10.minute}
       2.times{ @item.track_impression }
+      
+      Time.stub!(:now) { Time.new }
+      SimpleStats::Summery.build(10.minutes)
 
       @item.impressions_by_month.values.should == [2]
     end

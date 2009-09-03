@@ -18,11 +18,14 @@ describe SimpleStats::Tracking::Source do
     end
 
     it "should have generate two-way traching method (target + source)" do
-
+      Time.stub!(:now) { Time.new - 10.minutes }
       record = @user.track_impression_on(@video)
       record.target_id.should == @video.id
       record.source_id.should == @user.id
       record.action.should == 'impression'
+      
+      Time.stub!(:now) { Time.new }
+      SimpleStats::Summery.build
       
       @video.impressions_count.should == 1
       @user.impressions_count.should == 1
@@ -56,7 +59,9 @@ describe SimpleStats::Tracking::Source do
     end
     
     it "should be able to get all stats records with in a date range (ie: item.clicks)" do
+      reset_test_db!
       # today
+      Time.stub!(:now) { Time.new }
       @user.track_impression_on(@video)
       
       # yesterday
@@ -68,31 +73,39 @@ describe SimpleStats::Tracking::Source do
       @user.track_impression_on(@video)
   
       # a year before
-      Time.stub!(:now) { Time.new - 1.year }
+      Time.stub!(:now) { Time.new - 1.month }
       @user.track_impression_on(@video)
   
       # Forward in time
-      Time.stub!(:now) { Time.new }
-      @user.impressions(1.week.ago ... Time.now).length.should == 3
+      Time.stub!(:now) { Time.new + 1.minutes }
+      SimpleStats::Summery.build(10.minutes)
+      
+      @user.impressions(2.week.ago ... Time.now).length.should == 3
     end
     
     it "should be able to hit count within a date range (ie: item.clicks_count)" do
+      reset_test_db!
       
-      2.times { @user.track_click_on(@video) }
-      @user.clicks_count.should == 2
-      @user.clicks.length.should == @user.clicks_count
-      
-      # Travel back in time and do some impression hits
       Time.stub!(:now) { Time.new - 1.week }
+      2.times { @user.track_click_on(@video) }
+      
+      Time.stub!(:now) { Time.new - 20.minutes }
+
+      # Travel back in time and do some impression hits
       3.times { @video.track_impression_by(@user) }
       
       # All impressions this week
       this_week = 1.week.ago ... Time.new
-      
-      @video.impressions_count(this_week).should == 3
-      @video.impressions(this_week).length.should == 3
-    end
 
+      Time.stub!(:now) { Time.new }
+      SimpleStats::Summery.build
+
+      @user.clicks_count(this_week).should == 2
+      @user.clicks(this_week).length.should == @user.clicks_count(this_week)
+            
+      @video.impressions_count.should == 3
+      @video.impressions.length.should == 3
+    end
 
     it "should privide hourly count (ie: item.clicks_by_hour)" do
 

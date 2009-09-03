@@ -67,20 +67,25 @@ module SimpleStats
         Record.by_action_and_target_id_and_accessed_at conditions_for(*args)
       end
       
-      def stats_records_count(*args)
-        Record.count(:by_action_and_target_id_and_accessed_at, conditions_for(*args))
+      def stats_records_count(action, date = nil, options = {})
+        results = Summery.by_timestamp_and_type_and_trackable_action(
+          aggregated_conditions_for('target', action, date, {:reduce => true, :raw => true}.merge(options))
+        )["rows"]
+        
+        if results.first && results.first['value']
+          return results.first['value']
+        end
+        
+        0
       end
 
-      
-      def stats_records_by_minute(action, date = nil, options = {})
-        records = Record.by_action_and_target_id_and_accessed_at(
-          conditions_for(action, date, {:raw => true, :reduce => false }.merge(options))
-        )['rows']
-
-        records.inject(Hash.new(0)) do |hash, row|
-          hash[row['key'].last[0, 16]] += 1
-          hash
+      def stats_records_by_minute(*args)
+        if Config.query_method == :aggregated
+          records = fetch_aggregated_records(*args)
+        else
+          records = fetch_raw_records(*args)
         end
+        slice_stats(records, 0, 16)
       end
 
       def stats_records_by_hour(*args)
@@ -104,13 +109,24 @@ module SimpleStats
       end
     
     private
-      def slice_stats(records, from, to)
-        records.inject(Hash.new(0)) do |hash, (key, value)|
-          hash[key[from, to]] += value
+      def fetch_raw_records(action, date = nil, options = {})
+        records = Record.by_action_and_target_id_and_accessed_at(
+          conditions_for(action, date, {:raw => true, :reduce => false }.merge(options))
+        )['rows']
+        records.map!{|row| [ row['key'].last, 1] }
+      end
 
-          hash
+      def fetch_aggregated_records(action, date = nil, options = {})
+        records = Summery.by_timestamp_and_type_and_trackable_action(
+          aggregated_conditions_for('target', action, date, {:reduce => true, :raw => true, :group => true}.merge(options))
+        )["rows"]
+        
+        records.map! do |row|
+          time = Time.at(row["key"].first / 1000).utc.to_json[1..-1]
+          [time, row["value"]]
         end
       end
+
     end
   end
 end

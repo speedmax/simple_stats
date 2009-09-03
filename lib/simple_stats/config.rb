@@ -14,7 +14,8 @@ module SimpleStats
           :record_class       => SimpleStats::Record,
           :summery_class      => SimpleStats::Summery,
           :summery_padding    => 20.seconds,
-          :summery_interval   => 10.minutes
+          :summery_interval   => 10.minutes,
+          :query_method       => :raw
         }
       end
       

@@ -128,62 +128,62 @@ describe SimpleStats::Summery do
   describe "Query" do
     it "should return stats summery in given priod of time" do
       reset_test_db!
-    
+  
       # random time within that week
       Time.stub!(:now){ 
         min = rand(5500).minutes 
         min -= 1.week if min > 1.week
         @start_time + min
       }
-      
-      50.times { @item.track_impression }
-      
+    
+      20.times { @item.track_impression }
+    
       Time.stub!(:now){ @start_time + 1.week }
-    
+  
       Summery.build(@interval).should_not be_empty
-    
+  
       range = @start_time .. @start_time + 1.week
       results = Summery.by_timestamp_and_type_and_trackable_action(
         :reduce => true,
         :raw => true,
         :group => true,
-        :startkey => [range.first.to_js_timestamp, 'target', 'Item', @item.id, 'impression'],
-        :endkey => [range.last.to_js_timestamp, 'target', 'Item', @item.id, 'impression']
-      )
-      results["rows"].first["value"].should == Record.count
-      results["rows"].first["value"].should == 50
+        :startkey => ['target', 'Item', @item.id, 'impression', range.first.to_js_timestamp],
+        :endkey => ['target', 'Item', @item.id, 'impression', range.last.to_js_timestamp]
+      )["rows"]
+      
+      results.map{|r| r["value"]}.flatten.sum.should == 20
     end
     
     it "should start stats update when stats require update" do
       reset_test_db!
       current = @start_time
       
-      Time.stub!(:now){
-        current = current.succ
-      }
-      
-      100.times do
+      Time.stub!(:now){ current = current.succ }
+
+      20.times do
         @item.track_impression
-        
+
         # DO NOT do this in production, only works in single threaded mode
         # Use more robust async processing instead
-        if Summery.expired?(@interval)
-          Summery.build(@interval)
+        if Summery.expired?(1.minute)
+          Summery.build(1.minute)
         end
       end
 
       Time.stub!(:now) { @start_time + 2.week }
-      Summery.build(@interval)
+      Summery.build(1.minute)
+
+      @item.stats_records_by_year('impression', @start_time .. @start_time + 4.week)
 
       results = Summery.by_timestamp_and_type_and_trackable_action(
         :reduce => true,
         :raw => true,
         :group => true,
-        :startkey => [@start_time.to_js_timestamp, 'target', 'Item', @item.id, 'impression'],
-        :endkey => [(@start_time + 4.week).to_js_timestamp, 'target', 'Item', @item.id, 'impression']
+        :startkey => ['target', 'Item', @item.id, 'impression', @start_time.to_js_timestamp],
+        :endkey => ['target', 'Item', @item.id, 'impression', (@start_time + 4.week).to_js_timestamp]
       )["rows"]
       
-      results.map{|r| r["value"]}.sum.should == 100
+      results.map{|r| r["value"]}.sum.should == 20
     end
   end
 end

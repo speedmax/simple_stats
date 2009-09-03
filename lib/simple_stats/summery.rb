@@ -34,7 +34,7 @@ module SimpleStats
             var timestamp = unbase16(doc._id.substring(0, 12))
 
             for (action in doc.count) {
-              emit([timestamp, doc.type, doc.trackable_type, doc.trackable_id, action], doc.count[action])
+              emit([doc.type, doc.trackable_type, doc.trackable_id, action, timestamp], doc.count[action])
             }
           }
         }",
@@ -57,7 +57,7 @@ module SimpleStats
           return false unless first_record
           
           accessed_at = Time.parse(first_record.accessed_at).utc
-          start_time = report_start = accessed_at.every(interval) - interval
+          start_time = report_start = accessed_at.every(interval)
         else
           start_time = report_start = Time.parse(last[:to]).utc + 1.second
         end
@@ -80,10 +80,12 @@ module SimpleStats
             time >= report_range.first.to_i and time <= report_range.last.to_i
           end
           
-          # Build for target and source
-          results += self.build_for(:target, report_range, records)
-          results += self.build_for(:source, report_range, records)
-
+          if not records.empty?          
+            # Build for target and source
+            results += self.build_for(:target, report_range, records)
+            results += self.build_for(:source, report_range, records)
+          end
+        
           start_time += interval
         end
 
@@ -129,6 +131,7 @@ module SimpleStats
             :type         => summery_type,
             :from         => report_range.first,
             :to           => report_range.last,
+            :created_at     => report_range.first,
             :trackable_type => doc[trackable_type],
             :trackable_id   => doc[trackable_id],
           }
