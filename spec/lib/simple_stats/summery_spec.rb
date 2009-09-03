@@ -128,7 +128,7 @@ describe SimpleStats::Summery do
   describe "Query" do
     it "should return stats summery in given priod of time" do
       reset_test_db!
-
+    
       # random time within that week
       Time.stub!(:now){ 
         min = rand(5500).minutes 
@@ -139,9 +139,9 @@ describe SimpleStats::Summery do
       50.times { @item.track_impression }
       
       Time.stub!(:now){ @start_time + 1.week }
-
+    
       Summery.build(@interval).should_not be_empty
-
+    
       range = @start_time .. @start_time + 1.week
       results = Summery.by_timestamp_and_type_and_trackable_action(
         :reduce => true,
@@ -153,8 +153,39 @@ describe SimpleStats::Summery do
       results["rows"].first["value"].should == Record.count
       results["rows"].first["value"].should == 50
     end
-  end
+    
+    it "should start stats update when stats require update" do
+      reset_test_db!
+      current = @start_time
+      
+      Time.stub!(:now){
+        current = current.succ
+      }
+      
+      100.times do
+        @item.track_impression
+        
+        # DO NOT do this in production, only works in single threaded mode
+        # Use more robust async processing instead
+        if Summery.expired?(@interval)
+          Summery.build(@interval)
+        end
+      end
 
+      Time.stub!(:now) { @start_time + 2.week }
+      Summery.build(@interval)
+
+      results = Summery.by_timestamp_and_type_and_trackable_action(
+        :reduce => true,
+        :raw => true,
+        :group => true,
+        :startkey => [@start_time.to_js_timestamp, 'target', 'Item', @item.id, 'impression'],
+        :endkey => [(@start_time + 4.week).to_js_timestamp, 'target', 'Item', @item.id, 'impression']
+      )["rows"]
+      
+      results.map{|r| r["value"]}.sum.should == 100
+    end
+  end
 end
 
 class Time

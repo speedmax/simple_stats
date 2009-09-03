@@ -41,15 +41,6 @@ module SimpleStats
       :reduce => "function(k, v) {return sum(v);}"
         
     class << self
-      def create_or_find(attributes = {})
-        {
-          :count        => {},
-          :type         => summery_type,
-          :trackable_type => doc[trackable_type],
-          :trackable_id   => doc[trackable_id],
-        }
-      end
-      
       # Build stats summeries
       # 
       # Default report interval is 10 minutes
@@ -59,32 +50,37 @@ module SimpleStats
       def build(interval = 10.minutes, from = Time.now)
         padding = Config.summery_padding
         limit = Time.now.every(interval).utc
-        results = []        
-
+        results = []
+        
         unless last = self.last
-          accessed_at = Time.parse(Config.record_class.first.accessed_at).utc
-          report_start = accessed_at.every(interval) - interval
+          first_record = Config.record_class.first
+          return false unless first_record
+          
+          accessed_at = Time.parse(first_record.accessed_at).utc
+          start_time = report_start = accessed_at.every(interval) - interval
         else
-          report_start = Time.parse(last[:to]).utc + 1.second
+          start_time = report_start = Time.parse(last[:to]).utc + 1.second
         end
-
+        
+        # Fetch all records within the reporting range
         cached_records = Config.record_class.by_accessed_at(
           :startkey     => report_start,
           :endkey       => limit,
           :raw          => true,
           :include_docs => true
         )["rows"]
-
-        start_time = report_start
-
+        
+        # Build stats summery for every reporting interval
         ((report_start - limit) / interval).abs.to_i.times do
           report_range = start_time .. (start_time + interval - 1.second)
           
+          # Fetch cached records in that time interval
           records = cached_records.select do |record| 
             time = record["id"][0,12].to_i(16)/1000.to_f
             time >= report_range.first.to_i and time <= report_range.last.to_i
           end
           
+          # Build for target and source
           results += self.build_for(:target, report_range, records)
           results += self.build_for(:source, report_range, records)
 
@@ -97,7 +93,7 @@ module SimpleStats
       def expired?(interval = 10.minutes)
         padding = Config.summery_padding
         expired = Time.now >= Time.now.every(interval) + padding
-                
+        
         if previous = self.last
           diff = Time.now.every(interval) - previous.created_at
           return expired && (diff >= interval)
