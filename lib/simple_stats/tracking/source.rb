@@ -123,7 +123,7 @@ module SimpleStats
         )["rows"]
         
         records.map! do |row|
-          time = Time.at(row["key"].first / 1000).utc.to_json[1..-1]
+          time = Time.at(row["key"].last / 1000).utc.to_json[1..-1]
           [time, row["value"]]
         end
       end

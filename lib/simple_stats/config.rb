@@ -23,9 +23,13 @@ module SimpleStats
         if default_options[method] && @options[method]
           @options[method]
         elsif method =~ /=$/
-          method = method[0...-1]
+          method = method[0...-1].to_sym
           @options[method] = args.shift
         end
+      end
+      
+      def options
+        @options
       end
     end
   end

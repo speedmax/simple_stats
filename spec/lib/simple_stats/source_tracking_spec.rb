@@ -2,12 +2,12 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe SimpleStats::Tracking::Source do
   
-  before do
-    @video = Video.new
-    @video.id = rand(1000) + Time.now.usec
+  before :all do
+    @video = mock_model('Video')
+    @user = mock_model('User')
     
-    @user = User.new
-    @user.id = rand(1000) + Time.now.usec
+    SimpleStats::Config.setup
+    SimpleStats::Config.query_method = :aggregated
   end
   
   describe "tracking methods" do
@@ -108,18 +108,21 @@ describe SimpleStats::Tracking::Source do
     end
 
     it "should privide hourly count (ie: item.clicks_by_hour)" do
-
-      Time.stub!(:now) { Time.new - 20.hours }
+      reset_test_db!
+      
+      Time.stub!(:now) { Time.new - 4.hours }
       2.times{ @user.track_impression_on(@video) }
       
-      Time.stub!(:now) { Time.new - 10.hours }
+      Time.stub!(:now) { Time.new - 2.hours }
       2.times{ @user.track_impression_on(@video) }
       
-      result = @user.impressions_by_hour(3.days.ago ... Time.now)
+      Time.stub!(:now) { Time.new + 1.hour}
+      SimpleStats::Summery.build(1.hour)
 
-      result.keys.include?(  (Time.new - 20.hours).to_json[1, 13] ).should == true
-      result.keys.include?(  (Time.new - 10.hours).to_json[1, 13] ).should == true
-
+      result = @user.impressions_by_hour(1.day.ago ... Time.now)
+      
+      result.keys.include?( (Time.new - 4.hours).to_json[1, 13] ).should == true
+      result.keys.include?( (Time.new - 2.hours).to_json[1, 13] ).should == true
       result.values.should == [2, 2]
     end
   end

@@ -3,11 +3,14 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 include SimpleStats
 
 describe SimpleStats::Summery do
-  before do
+  before :all do
     SimpleStats::Config.setup
     
+    SimpleStats::Config.query_method = :aggregated
+
     @item = mock_model('Item')
     @user = mock_model('User')
+
     @start_time =  Time.parse('2008-10-10 12:00:00 +0000').utc
     @interval = SimpleStats::Config.summery_interval
     @padding = SimpleStats::Config.summery_padding

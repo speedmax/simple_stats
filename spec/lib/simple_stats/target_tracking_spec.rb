@@ -2,12 +2,10 @@ require File.dirname(__FILE__) + "/../../spec_helper"
 
 describe SimpleStats::Tracking do
   
-  before do
-    @item = Item.new
-    @item.id = rand(1000) + Time.now.usec
-    
-    @user = User.new
-    @user.id = rand(1000) + Time.now.usec
+  before :all do
+    @item = mock_model('Item')
+    @user = mock_model('User')
+    SimpleStats::Config.query_method = :aggregated
   end
   
   describe "Target tracking" do
@@ -81,11 +79,13 @@ describe SimpleStats::Tracking do
     end
 
     it "should be able to get all stats records with in a date range (ie: item.clicks)" do
+      reset_test_db!
       # today
+      Time.stub!(:now) { Time.new }
       @item.track_impression
       
       # yesterday
-      Time.stub!(:now) { Time.new - 1.day }
+      Time.stub!(:now){ Time.new - 1.day }
       @item.track_impression
       
       # a week before
@@ -93,13 +93,14 @@ describe SimpleStats::Tracking do
       @item.track_impression
   
       # a year before
-      Time.stub!(:now) { Time.new - 1.year }
+      Time.stub!(:now) { Time.new - 1.month }
       @item.track_impression
   
       # Forward in time
-      Time.stub!(:now) { Time.new }
-      @item.impressions(1.week.ago ... Time.now).should have(3).things
-  
+      Time.stub!(:now) { Time.new + 1.minutes }
+      SimpleStats::Summery.build(10.minutes)
+      
+      @item.impressions(2.week.ago ... Time.now).length.should == 3
     end
     
     it "should be able to hit count within a date range (ie: item.clicks_count)" do
