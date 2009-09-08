@@ -118,9 +118,10 @@ module SimpleStats
       end
 
       def fetch_aggregated_records(action, date = nil, options = {})
-        records = Summery.by_timestamp_and_type_and_trackable_action(
-          aggregated_conditions_for('source', action, date, {:reduce => true, :raw => true, :group => true}.merge(options))
-        )["rows"]
+        conditions = aggregated_conditions_for(
+          'source', action, date, {:reduce => true, :raw => true, :group => true}.merge(options)
+        )
+        records = Summery.by_timestamp_and_type_and_trackable_action(conditions)["rows"]
         
         records.map! do |row|
           time = Time.at(row["key"].last / 1000).utc.to_json[1..-1]
