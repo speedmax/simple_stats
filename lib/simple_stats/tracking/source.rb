@@ -119,7 +119,7 @@ module SimpleStats
 
       def fetch_aggregated_records(action, date = nil, options = {})
         conditions = aggregated_conditions_for(
-          'source', action, date, {:reduce => true, :raw => true, :group => true}.merge(options)
+          'source', action, date, {:raw => true, :reduce => false}.merge(options)
         )
         records = Summery.by_timestamp_and_type_and_trackable_action(conditions)["rows"]
         
