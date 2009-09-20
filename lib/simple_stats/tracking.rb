@@ -15,8 +15,8 @@ module SimpleStats
       from, to = normalize_daterange(from)
       
       conditions = {
-        :startkey => [action, self.id, self.class.to_s, Time.at(from)],
-        :endkey => [action, self.id, self.class.to_s, Time.at(to)]
+        :startkey => [action, self.id, self.class.to_s, Time.at(from.to_i)],
+        :endkey => [action, self.id, self.class.to_s, Time.at(to.to_i)]
       }.merge(options)
     end
     

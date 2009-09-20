@@ -18,7 +18,7 @@ end
 
 def mock_model(name)
   record = name.classify.constantize.new
-  record.stub!(:id).and_return(rand(1000) + Time.new.usec)
+  record.id = rand(1000) + Time.new.usec
   record
 end
 
