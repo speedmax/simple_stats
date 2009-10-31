@@ -23,16 +23,7 @@ module SimpleStats
       :map => 
         "function(doc) {
           if ((doc['couchrest-type'] == 'SimpleStats::Summery') && doc.trackable_id && doc.trackable_type && doc.count) {
-            var unbase16 = function(num){
-              var base='0123456789abcdef', ret=0;
-              for(var x=1;num.length>0;x*=base.length){
-                ret += base.indexOf(num.charAt(num.length-1)) * x
-                num = num.substr(0,num.length-1);
-              }
-              return ret;
-            }
-            var timestamp = unbase16(doc._id.substring(0, 12))
-
+            var timestamp = parseInt(doc._id.substring(0, 12), 16);
             for (action in doc.count) {
               emit([doc.type, doc.trackable_type, doc.trackable_id, action, timestamp], doc.count[action])
             }
